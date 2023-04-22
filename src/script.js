@@ -39,10 +39,46 @@ gltfLoader.load(
 )
 
 gltfLoader.load(
-    '/models/burger.glb',
+    '/models/hangar.glb',
     (gltf) =>
     {
         console.log(gltf);
+        gltf.scene.position.x += 10;
+        gltf.scene.position.z += 10;
+        scene.add(gltf.scene)
+    }
+)
+
+gltfLoader.load(
+    '/models/terminal.glb',
+    (gltf) =>
+    {
+        console.log(gltf);
+        gltf.scene.position.x -= 10;
+        gltf.scene.position.z -= 5;
+        scene.add(gltf.scene)
+    }
+)
+
+gltfLoader.load(
+    '/models/bus.glb',
+    (gltf) =>
+    {
+        console.log(gltf);
+        gltf.scene.position.x += 10;
+        gltf.scene.position.y += 0.5;
+        gltf.scene.position.z -= 10;
+        scene.add(gltf.scene)
+    }
+)
+
+gltfLoader.load(
+    '/models/tower.glb',
+    (gltf) =>
+    {
+        console.log(gltf);
+        gltf.scene.position.x -= 10;
+        gltf.scene.position.z += 10;
         scene.add(gltf.scene)
     }
 )
