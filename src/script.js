@@ -10,12 +10,53 @@ import * as dat from 'lil-gui'
  */
 // Debug
 const gui = new dat.GUI()
+const debugObject = {}
 
 // Canvas
 const canvas = document.querySelector('canvas.webgl')
 
 // Scene
 const scene = new THREE.Scene()
+
+/**
+ * Textures
+ */
+const textureLoader = new THREE.TextureLoader()
+
+const asphaltColorTexture = textureLoader.load('/textures/Asphalt_005_SD/Asphalt_006_COLOR.jpg')
+const asphaltAmbientOcclusionTexture = textureLoader.load('/textures/Asphalt_005_SD/Asphalt_006_OCC.jpg')
+const asphaltNormalTexture = textureLoader.load('/textures/Asphalt_005_SD/Asphalt_006_NRM.jpg')
+const asphaltRoughnessTexture = textureLoader.load('/textures/Asphalt_005_SD/Asphalt_006_ROUGH.jpg')
+
+asphaltColorTexture.wrapS = THREE.RepeatWrapping
+asphaltColorTexture.wrapT = THREE.RepeatWrapping
+asphaltAmbientOcclusionTexture.wrapS = THREE.RepeatWrapping
+asphaltAmbientOcclusionTexture.wrapT = THREE.RepeatWrapping
+asphaltNormalTexture.wrapS = THREE.RepeatWrapping
+asphaltNormalTexture.wrapT = THREE.RepeatWrapping
+asphaltRoughnessTexture.wrapS = THREE.RepeatWrapping
+asphaltRoughnessTexture.wrapT = THREE.RepeatWrapping
+asphaltColorTexture.repeat.set(8,8)
+asphaltAmbientOcclusionTexture.repeat.set(8,8)
+asphaltNormalTexture.repeat.set(8,8)
+asphaltRoughnessTexture.repeat.set(8,8)
+
+/**
+ * Update all materials
+ */
+const updateAllMaterials = () => {
+    scene.traverse((child) => {
+        if (child instanceof THREE.Mesh && child.material instanceof THREE.MeshStandardMaterial){
+           child.material.envMap = environmentMap
+            child.material.envMapIntensity = debugObject.envMapIntensity
+            child.castShadow = true
+            child.receiveShadow = true
+        }
+    })
+}
+
+debugObject.envMapIntensity = 2.5
+gui.add(debugObject, 'envMapIntensity').min(0).max(10).step(0.001).onChange(updateAllMaterials)
 
 /**
  * Models
@@ -83,37 +124,54 @@ gltfLoader.load(
     }
 )
 
+const cubeTextureLoader = new THREE.CubeTextureLoader()
+/**
+ * Environment map
+ */
+const environmentMap =  cubeTextureLoader.load([
+    '/textures/cubeMaps/px.png',
+    '/textures/cubeMaps/nx.png',
+    '/textures/cubeMaps/py.png',
+    '/textures/cubeMaps/ny.png',
+    '/textures/cubeMaps/pz.png',
+    '/textures/cubeMaps/nz.png'
+])
+environmentMap.encoding = THREE.sRGBEncoding
+scene.background = environmentMap
+scene.environment = environmentMap
+
 /**
  * Floor
  */
 const floor = new THREE.Mesh(
     new THREE.PlaneGeometry(50, 50),
     new THREE.MeshStandardMaterial({
-        color: '#444444',
-        metalness: 0,
-        roughness: 0.5
+        map: asphaltColorTexture,
+        aoMap: asphaltAmbientOcclusionTexture,
+        normalMap: asphaltNormalTexture,
+        roughnessMap: asphaltRoughnessTexture
     })
 )
+floor.geometry.setAttribute('uv2', new THREE.Float32BufferAttribute(floor.geometry.attributes.uv.array, 2))
+floor.rotation.x = -Math.PI * 0.5
+floor.position.y = 0
 floor.receiveShadow = true
-floor.rotation.x = - Math.PI * 0.5
 scene.add(floor)
 
 /**
  * Lights
  */
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.8)
-scene.add(ambientLight)
-
-const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6)
-directionalLight.castShadow = true
+const directionalLight = new THREE.DirectionalLight('#ffffff', 3);
+directionalLight.position.set(3, 1, -2.25);
+directionalLight.castShadow = true;
+directionalLight.shadow.camera.far = 15;
 directionalLight.shadow.mapSize.set(1024, 1024)
-directionalLight.shadow.camera.far = 15
-directionalLight.shadow.camera.left = - 7
-directionalLight.shadow.camera.top = 7
-directionalLight.shadow.camera.right = 7
-directionalLight.shadow.camera.bottom = - 7
-directionalLight.position.set(5, 5, 5)
 scene.add(directionalLight)
+
+gui.add(directionalLight, 'intensity').min(0).max(10).step(0.001).name('lightIntensity')
+gui.add(directionalLight.position,'x').min(-5).max(5).step(0.001).name('lightX')
+gui.add(directionalLight.position,'y').min(-5).max(5).step(0.001).name('lightY')
+gui.add(directionalLight.position,'z').min(-5).max(5).step(0.001).name('lightZ')
 
 /**
  * Sizes
