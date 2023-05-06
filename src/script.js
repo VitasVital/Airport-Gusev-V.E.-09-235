@@ -1,9 +1,10 @@
-import './style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import * as dat from 'lil-gui'
+import testVertexShader from './shaders/test/vertex.glsl'
+import testFragmentShader from './shaders/test/fragment.glsl'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
-import * as dat from 'lil-gui'
 
 /**
  * Base
@@ -22,6 +23,7 @@ const scene = new THREE.Scene()
  * Textures
  */
 const textureLoader = new THREE.TextureLoader()
+const flagTexture = textureLoader.load('/textures/russian-flag.jpg')
 
 const asphaltColorTexture = textureLoader.load('/textures/Asphalt_005_SD/Asphalt_006_COLOR.jpg')
 const asphaltAmbientOcclusionTexture = textureLoader.load('/textures/Asphalt_005_SD/Asphalt_006_OCC.jpg')
@@ -40,6 +42,47 @@ asphaltColorTexture.repeat.set(8,8)
 asphaltAmbientOcclusionTexture.repeat.set(8,8)
 asphaltNormalTexture.repeat.set(8,8)
 asphaltRoughnessTexture.repeat.set(8,8)
+
+/**
+ * Test mesh
+ */
+
+// Geometry
+const geometry = new THREE.PlaneGeometry(1, 1, 32, 32)
+
+const count = geometry.attributes.position.count
+const randoms = new Float32Array(count)
+
+for (let i=0; i < count; i++){
+    randoms[i] = Math.random()
+}
+
+geometry.setAttribute('aRandom', new THREE.BufferAttribute(randoms, 1))
+
+// Material
+const material = new THREE.ShaderMaterial({
+    vertexShader: testVertexShader,
+    fragmentShader: testFragmentShader,
+    transparent: true,
+    uniforms: {
+        uFrequency: {value: new THREE.Vector2(10, 5)},
+        uTime: {value: 0},
+        uColor: {value: new THREE.Color('orange')},
+        uTexture: {value: flagTexture}
+    }
+})
+
+gui.add(material.uniforms.uFrequency.value, 'x').min(0).max(20).step(0.01).name('frequencyX');
+gui.add(material.uniforms.uFrequency.value, 'y').min(0).max(20).step(0.01).name('frequencyY');
+
+// Mesh
+const mesh = new THREE.Mesh(geometry, material)
+mesh.position.y = 9;
+mesh.position.x -= 10;
+mesh.position.z += 10;
+mesh.rotation.y += Math.PI;
+mesh.scale.y = 2 / 3
+scene.add(mesh)
 
 /**
  * Update all materials
@@ -224,18 +267,12 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
  * Animate
  */
 const clock = new THREE.Clock()
-let previousTime = 0
 
 const tick = () =>
 {
     const elapsedTime = clock.getElapsedTime()
-    const deltaTime = elapsedTime - previousTime
-    previousTime = elapsedTime
 
-    if(mixer)
-    {
-        mixer.update(deltaTime)
-    }
+    material.uniforms.uTime.value = elapsedTime;
 
     // Update controls
     controls.update()
