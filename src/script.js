@@ -3,6 +3,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import * as dat from 'lil-gui'
 import testVertexShader from './shaders/test/vertex.glsl'
 import testFragmentShader from './shaders/test/fragment.glsl'
+import testFragmentShader1 from './shaders/test/fragment1.glsl'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 
@@ -63,6 +64,7 @@ geometry.setAttribute('aRandom', new THREE.BufferAttribute(randoms, 1))
 const material = new THREE.ShaderMaterial({
     vertexShader: testVertexShader,
     fragmentShader: testFragmentShader,
+    side: THREE.DoubleSide,
     transparent: true,
     uniforms: {
         uFrequency: {value: new THREE.Vector2(10, 5)},
@@ -80,9 +82,33 @@ const mesh = new THREE.Mesh(geometry, material)
 mesh.position.y = 9;
 mesh.position.x -= 10;
 mesh.position.z += 10;
-mesh.rotation.y += Math.PI;
 mesh.scale.y = 2 / 3
 scene.add(mesh)
+
+// Material1
+const material1 = new THREE.ShaderMaterial({
+    vertexShader: testVertexShader,
+    fragmentShader: testFragmentShader1,
+    side: THREE.DoubleSide,
+    transparent: true,
+    uniforms: {
+        uFrequency: {value: new THREE.Vector2(10, 5)},
+        uTime: {value: 0},
+        uColor: {value: new THREE.Color('orange')},
+        uTexture: {value: flagTexture}
+    }
+})
+
+gui.add(material1.uniforms.uFrequency.value, 'x').min(0).max(20).step(0.01).name('frequencyX');
+gui.add(material1.uniforms.uFrequency.value, 'y').min(0).max(20).step(0.01).name('frequencyY');
+
+// Mesh
+const mesh1 = new THREE.Mesh(geometry, material1)
+mesh1.position.y = 5.5;
+mesh1.position.x += 10;
+mesh1.position.z += 5;
+mesh1.scale.y = 2 / 3;
+scene.add(mesh1)
 
 /**
  * Update all materials
@@ -116,7 +142,6 @@ gltfLoader.load(
     '/models/plane.glb',
     (gltf) =>
     {
-        console.log(gltf);
         gltf.scene.position.y += 10;
         scene.add(gltf.scene)
     }
@@ -126,7 +151,6 @@ gltfLoader.load(
     '/models/hangar.glb',
     (gltf) =>
     {
-        console.log(gltf);
         gltf.scene.position.x += 10;
         gltf.scene.position.z += 10;
         scene.add(gltf.scene)
@@ -137,7 +161,6 @@ gltfLoader.load(
     '/models/terminal.glb',
     (gltf) =>
     {
-        console.log(gltf);
         gltf.scene.position.x -= 10;
         gltf.scene.position.z -= 5;
         scene.add(gltf.scene)
@@ -148,7 +171,6 @@ gltfLoader.load(
     '/models/bus.glb',
     (gltf) =>
     {
-        console.log(gltf);
         gltf.scene.position.x += 10;
         gltf.scene.position.y += 0.5;
         gltf.scene.position.z -= 10;
@@ -160,7 +182,6 @@ gltfLoader.load(
     '/models/tower.glb',
     (gltf) =>
     {
-        console.log(gltf);
         gltf.scene.position.x -= 10;
         gltf.scene.position.z += 10;
         scene.add(gltf.scene)
@@ -273,6 +294,7 @@ const tick = () =>
     const elapsedTime = clock.getElapsedTime()
 
     material.uniforms.uTime.value = elapsedTime;
+    material1.uniforms.uTime.value = elapsedTime;
 
     // Update controls
     controls.update()
