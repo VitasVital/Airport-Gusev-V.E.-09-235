@@ -4,6 +4,7 @@ import * as dat from 'lil-gui'
 import testVertexShader from './shaders/test/vertex.glsl'
 import testFragmentShader from './shaders/test/fragment.glsl'
 import testFragmentShader1 from './shaders/test/fragment1.glsl'
+import testFragmentShader2 from './shaders/test/fragment2.glsl'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 
@@ -102,13 +103,38 @@ const material1 = new THREE.ShaderMaterial({
 gui.add(material1.uniforms.uFrequency.value, 'x').min(0).max(20).step(0.01).name('frequencyX');
 gui.add(material1.uniforms.uFrequency.value, 'y').min(0).max(20).step(0.01).name('frequencyY');
 
-// Mesh
+// Mesh1
 const mesh1 = new THREE.Mesh(geometry, material1)
 mesh1.position.y = 5.5;
 mesh1.position.x += 10;
 mesh1.position.z += 5;
 mesh1.scale.y = 2 / 3;
 scene.add(mesh1)
+
+// Material2
+const material2 = new THREE.ShaderMaterial({
+    vertexShader: testVertexShader,
+    fragmentShader: testFragmentShader2,
+    side: THREE.DoubleSide,
+    transparent: true,
+    uniforms: {
+        uFrequency: {value: new THREE.Vector2(10, 5)},
+        uTime: {value: 0},
+        uColor: {value: new THREE.Color('orange')},
+        uTexture: {value: flagTexture}
+    }
+})
+
+gui.add(material2.uniforms.uFrequency.value, 'x').min(0).max(20).step(0.01).name('frequencyX');
+gui.add(material2.uniforms.uFrequency.value, 'y').min(0).max(20).step(0.01).name('frequencyY');
+
+// Mesh2
+const mesh2 = new THREE.Mesh(geometry, material2)
+mesh2.position.y = 6;
+mesh2.position.x -= 1;
+mesh2.position.z -= 6;
+mesh2.scale.y = 2 / 3;
+scene.add(mesh2)
 
 /**
  * Update all materials
@@ -295,6 +321,7 @@ const tick = () =>
 
     material.uniforms.uTime.value = elapsedTime;
     material1.uniforms.uTime.value = elapsedTime;
+    material2.uniforms.uTime.value = elapsedTime;
 
     // Update controls
     controls.update()
